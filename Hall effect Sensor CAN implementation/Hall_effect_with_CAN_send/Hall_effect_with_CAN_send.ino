@@ -4,11 +4,28 @@
 
 #define TX_GPIO_NUM   21  // Connects to CTX
 #define RX_GPIO_NUM   22  // Connects to CRX
+//#define hallPin       36
+const int hallPin = 19;   // Hall effect sensor pin
+const int numMagnets = 1; // Number of magnets on the rotating disk
+
+volatile unsigned int pulseCount = 0;
+unsigned long lastUpdateTime = 0;
+unsigned int rpm = 0;
+const float diskDiameter = 0.1; // Diameter in meters (change this according to your disk)
+const float conversionFactor = 2.23694; // Conversion factor from m/s to mph
+const float diskCircumference = PI * diskDiameter;
 
 //==================================================================================//
 
+// Interrupt service routine for Hall effect sensor
+void IRAM_ATTR hallInterrupt() {
+  pulseCount++;
+}
+
 void setup() {
   Serial.begin (115200);
+  pinMode(hallPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(hallPin), hallInterrupt, FALLING);
   while (!Serial);
   delay (1000);
 
@@ -30,35 +47,35 @@ void setup() {
 //==================================================================================//
 
 void loop() {
-  canSender();
+  int x = rpms();
+  canSender(x);
+  float y = rpm_to_mph(x);
+  canSender(y);
   //canReceiver();
 }
 
 //==================================================================================//
 
-void canSender() {
+void canSender(int rpmz) {
   // send packet: id is 11 bits, packet can contain up to 8 bytes of data
   Serial.print ("Sending packet ... ");
-
-  CAN.beginPacket (0x7EB);  //sets the ID and clears the transmit buffer
-  // CAN.beginExtendedPacket(0xabcdef);
-  CAN.write ('1'); //write data to buffer. data is not sent until endPacket() is called.
-  CAN.write ('2');
-  CAN.write ('3');
-  CAN.write ('4');
-  CAN.write ('5');
-  CAN.write ('6');
-  CAN.write ('7');
-  CAN.write ('8');
+  
+  //CAN.beginPacket (0x12);  //sets the ID and clears the transmit buffer
+  CAN.beginExtendedPacket(0xabcdef);
+  String numStr = String(rpmz);  // Convert integer to string
+  for(int i=0; i<numStr.length(); i++) {  // Iterate over each character in string
+    char c = numStr.charAt(i);  // Get the character
+    CAN.write(c);  // Print the character
+  }
   CAN.endPacket();
 
   //RTR packet with a requested data length
-  CAN.beginPacket (0x7EB, 3, true);
-  CAN.endPacket();
+  /*CAN.beginPacket (0x12, 3, true);
+  CAN.endPacket();*/
 
   Serial.println ("done");
 
-  delay (1000);
+  delay (100);
 }
 
 //==================================================================================//
@@ -101,4 +118,32 @@ void canReceiver() {
   }
 }
 
+int rpms()
+{
+  if (millis() - lastUpdateTime >= 1000) {
+    detachInterrupt(digitalPinToInterrupt(hallPin)); // Disable interrupt while calculating RPM
+    
+    rpm = (pulseCount * 60) / (numMagnets); // Calculate RPM
+    
+    pulseCount = 0; // Reset pulse count
+    
+    lastUpdateTime = millis(); // Update last update time
+    
+    attachInterrupt(digitalPinToInterrupt(hallPin), hallInterrupt, FALLING); // Re-enable interrupt
+  }
+
+  // Print RPM
+  Serial.print("RPM: ");
+  Serial.println(rpm);
+  return rpm;
+}
+
 //==================================================================================//
+
+float rpm_to_mph(int rpmz)
+{
+  float rps = rpmz/60;
+  float speed_mps = rps * diskCircumference; 
+  float speed_mph = speed_mps * conversionFactor;  // Convert m/s to mph
+  return speed_mph;
+}
