@@ -31,7 +31,6 @@ void setup() {
 
 void loop() {
   canSender();
-  //canReceiver();
 }
 
 //==================================================================================//
@@ -53,52 +52,12 @@ void canSender() {
   CAN.endPacket();
 
   //RTR packet with a requested data length
-  /*CAN.beginPacket (0x12, 3, true);
-  CAN.endPacket();*/
+  CAN.beginPacket (0x12, 3, true);
+  CAN.endPacket();
 
   Serial.println ("done");
 
   delay (1000);
 }
 
-//==================================================================================//
-
-void canReceiver() {
-  // try to parse packet
-  int packetSize = CAN.parsePacket();
-
-  if (packetSize) {
-    // received a packet
-    Serial.print ("Received ");
-
-    if (CAN.packetExtended()) {
-      Serial.print ("extended ");
-    }
-
-    if (CAN.packetRtr()) {
-      // Remote transmission request, packet contains no data
-      Serial.print ("RTR ");
-    }
-
-    Serial.print ("packet with id 0x");
-    Serial.print (CAN.packetId(), HEX);
-
-    if (CAN.packetRtr()) {
-      Serial.print (" and requested length ");
-      Serial.println (CAN.packetDlc());
-    } else {
-      Serial.print (" and length ");
-      Serial.println (packetSize);
-
-      // only print packet data for non-RTR packets
-      while (CAN.available()) {
-        Serial.print ((char) CAN.read());
-      }
-      Serial.println();
-    }
-
-    Serial.println();
-  }
-}
-
-//==================================================================================//
+//=================================================================================

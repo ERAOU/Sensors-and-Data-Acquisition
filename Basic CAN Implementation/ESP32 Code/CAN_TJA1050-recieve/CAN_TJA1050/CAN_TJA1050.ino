@@ -30,35 +30,8 @@ void setup() {
 //==================================================================================//
 
 void loop() {
-  //canSender();
+  
   canReceiver();
-}
-
-//==================================================================================//
-
-void canSender() {
-  // send packet: id is 11 bits, packet can contain up to 8 bytes of data
-  Serial.print ("Sending packet ... ");
-
-  CAN.beginPacket (0x7EB);  //sets the ID and clears the transmit buffer
-  // CAN.beginExtendedPacket(0xabcdef);
-  CAN.write ('1'); //write data to buffer. data is not sent until endPacket() is called.
-  CAN.write ('2');
-  CAN.write ('3');
-  CAN.write ('4');
-  CAN.write ('5');
-  CAN.write ('6');
-  CAN.write ('7');
-  CAN.write ('8');
-  CAN.endPacket();
-
-  //RTR packet with a requested data length
-  CAN.beginPacket (0x7EB, 3, true);
-  CAN.endPacket();
-
-  Serial.println ("done");
-
-  delay (1000);
 }
 
 //==================================================================================//
