@@ -1,5 +1,4 @@
 void setup() {
-  // Initialize the serial communication at 9600 baud
   Serial.begin(115200);
 
   // Initialize the random seed
