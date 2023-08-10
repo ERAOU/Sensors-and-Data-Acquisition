@@ -6,13 +6,13 @@
 #define RX_GPIO_NUM   22  // Connects to CRX
 //#define hallPin       36
 const int hallPin = 19;   // Hall effect sensor pin
-const int numMagnets = 1; // Number of magnets on the rotating disk
+const int numMagnets = 6; 
+const float diskDiameter = 0.2794; // 11 inches converted to meters
+const float conversionFactor = 2.23694; // Conversion factor from m/s to mph
 
 volatile unsigned int pulseCount = 0;
 unsigned long lastUpdateTime = 0;
 unsigned int rpm = 0;
-const float diskDiameter = 0.1; // Diameter in meters (change this according to your disk)
-const float conversionFactor = 2.23694; // Conversion factor from m/s to mph
 const float diskCircumference = PI * diskDiameter;
 
 //==================================================================================//

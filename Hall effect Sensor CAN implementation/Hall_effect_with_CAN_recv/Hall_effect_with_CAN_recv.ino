@@ -31,6 +31,11 @@ void setup() {
 void loop() {
   canReceiver();
 }
+if (Serial.available)
+{
+  char data = Serial.read();
+  Serial.print(data);
+}
 
 void canReceiver() {
   // try to parse packet
